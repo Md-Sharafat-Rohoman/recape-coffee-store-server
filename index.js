@@ -24,6 +24,7 @@ async function run() {
     try{
         await client.connect();
         const coffeeCollection = client.db('recapeCoffeeDB').collection('coffees')
+        const usersCollection = client.db('recapeCoffeeDB').collection('users')
 
         app.get('/coffees', async(req, res)=>{
             const result = await coffeeCollection.find().toArray();
@@ -44,10 +45,44 @@ async function run() {
             res.send(result)
         })
 
+        app.put('/coffees/:id', async(req, res)=>{
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const options = { upsert:true};
+            const updatedCoffee = req.body;
+            const updateDoc = {
+                $set: updatedCoffee
+            }
+            const  result = await coffeeCollection.updateOne(filter, updateDoc, options);
+            console.log(result)
+            res.send(result);
+
+
+
+        })
+
         app.delete('/coffees/:id', async(req, res)=>{
             const id = req.params.id;
             const query = {_id: new ObjectId(id)}
             const result = await coffeeCollection.deleteOne(query);
+            res.send(result);
+        })
+
+
+        // client side data added server in mongodb
+        app.get('/users', async(req, res)=>{
+            const result = await usersCollection.find().toArray();
+            res.send(result);
+        })
+        app.post('/users', async(req, res)=>{
+            const updateProfile = req.body;
+            const result = await usersCollection.insertOne(updateProfile);
+            res.send(result)
+        })
+        app.delete('/users/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await usersCollection.deleteOne(query);
             res.send(result);
         })
 
